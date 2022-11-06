@@ -10,25 +10,24 @@ public class FrameDTO {
 	private String second;
 	private boolean bonus;
 
-	
 	int calculateScore() {
-	    return isSpare() ? 10 : parseInt(first) + parseInt(second);
-	    
-	  }
+		return isSpare() ? 10 : parseInt(first) + parseInt(second);
 
-	
+	}
+
 	public boolean isSpare() {
 		return SPARE_SIGNAL.endsWith(second);
 	}
-	
+
 	boolean isStrike() {
-	    return STRIKE_SIGNAL.equals(first);
-	  }
+		return STRIKE_SIGNAL.equals(first);
+	}
 
 	public int getFirstScore() {
 		return parseInt(first);
 	}
+
 	public int getSecondScore() {
-	    return parseInt(second);
-	  }
+		return parseInt(second);
+	}
 }
