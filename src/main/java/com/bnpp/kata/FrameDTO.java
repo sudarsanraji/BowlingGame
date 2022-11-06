@@ -6,22 +6,24 @@ import static java.lang.Integer.parseInt;
 public class FrameDTO {
   private static final String SPARE_SIGNAL = "/";
   private String first;
-  private String second;
+  
 
-  public FrameDTO(String first, String second) {
+  public FrameDTO(String first) {
+	  
     this.first = first;
-    this.second = second;
+    
   }
 
   public int calculateScore() {
     if (isSpare()) {
       return 10;
     }
-    return parseInt(first) + parseInt(second);
+    return parseInt(first);
   }
+  
 
   public boolean isSpare() {
-    return SPARE_SIGNAL.endsWith(second);
+    return SPARE_SIGNAL.endsWith(first);
   }
 
   public int getFirstScore() {
