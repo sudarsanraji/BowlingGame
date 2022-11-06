@@ -5,27 +5,30 @@ import static java.lang.Integer.parseInt;
 
 public class FrameDTO {
 	private static final String SPARE_SIGNAL = "/";
+	public static final String STRIKE_SIGNAL = "X";
 	private String first;
 	private String second;
+	private boolean bonus;
 
-	public FrameDTO(String first, String second) {
+	
+	int calculateScore() {
+	    return isSpare() ? 10 : parseInt(first) + parseInt(second);
+	    
+	  }
 
-		this.first = first;
-		this.second = second;
-	}
-
-	public int calculateScore() {
-		if (isSpare()) {
-			return 10;
-		}
-		return parseInt(first) + parseInt(second);
-	}
-
+	
 	public boolean isSpare() {
 		return SPARE_SIGNAL.endsWith(second);
 	}
+	
+	boolean isStrike() {
+	    return STRIKE_SIGNAL.equals(first);
+	  }
 
 	public int getFirstScore() {
 		return parseInt(first);
 	}
+	public int getSecondScore() {
+	    return parseInt(second);
+	  }
 }
