@@ -22,7 +22,7 @@ class FramesBuilder {
 	}
 
 	private FrameDTO buildFrame(String[] records, int index) {
-		FrameDTO frame;
+		frame.setUpComingRecords(records[index + 1] + records[index + 2]);
 		if (isStrike(records[index])) {
 			return createFrame(records[index], EMPTY, false);
 			frame = createFrame(records[index], EMPTY, false);
@@ -35,6 +35,7 @@ class FramesBuilder {
 		}
 		if (frame.isSpare()) {
 			frame.setUpComingRecords(records[index + 1]);
+			frame.setUpComingRecords(records[index + 2]);
 		}
 		return frame;
 	}

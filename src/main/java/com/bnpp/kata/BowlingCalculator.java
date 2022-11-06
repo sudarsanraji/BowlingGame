@@ -20,6 +20,7 @@ class BowlingCalculator {
 		if (frame.isSpare()) {
 			FrameDTO nextFrame = frames.get(index + 1);
 			return frame.calculateScore() + nextFrame.getFirstScore();
+			return frame.calculateScore() + frame.getBonus();
 		}
 		if (frame.isStrike()) {
 			FrameDTO nextFrame = frames.get(index + 1);
