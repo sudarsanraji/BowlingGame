@@ -1,33 +1,43 @@
 
 package com.bnpp.kata;
 
-import static java.lang.Integer.parseInt;
+class Frame {
 
-public class FrameDTO {
-	private static final String SPARE_SIGNAL = "/";
-	public static final String STRIKE_SIGNAL = "X";
+	static final String STRIKE_SIGNAL = "X";
+	static final String SPARE_SIGNAL = "/";
+	static final String EMPTY = "";
 	private String first;
 	private String second;
 	private boolean bonus;
+	private String upComingRecords;
 
-	int calculateScore() {
-		return isSpare() ? 10 : parseInt(first) + parseInt(second);
+	FrameDTO(String first, String second) {
+    this.first = first;
+    boolean isBonus() 
+    return bonus;
+  }
 
+	void setUpComingRecords(String upComingRecords) {
+		this.upComingRecords = upComingRecords;
 	}
 
-	public boolean isSpare() {
-		return SPARE_SIGNAL.endsWith(second);
-	}
-
-	boolean isStrike() {
-		return STRIKE_SIGNAL.equals(first);
-	}
-
-	public int getFirstScore() {
-		return parseInt(first);
-	}
-
-	public int getSecondScore() {
-		return parseInt(second);
+	int getBonus() {
+		String[] bonuses = upComingRecords.split(EMPTY);
+		int totalBonus = 0;
+		for (String bonus : bonuses) {
+			switch (bonus) {
+			case "X":
+				totalBonus += 10;
+				break;
+			case "/":
+				return 10;
+			case "-":
+				totalBonus += 0;
+				break;
+			default:
+				totalBonus += parseInt(bonus);
+			}
+		}
+		return totalBonus;
 	}
 }
