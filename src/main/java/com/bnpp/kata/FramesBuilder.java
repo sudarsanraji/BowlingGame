@@ -7,34 +7,48 @@ import static com.bnpp.kata.FrameDTO.STRIKE_SIGNAL;
 
 class FramesBuilder {
 
-	private static final String ZERO = "0";
 	private static final String EMPTY = "";
 
-	List<FrameDTO> build(String[] records) {
-
 	List<FrameDTO> build(String input) {
-	    String[] records = input.split(EMPTY);
-	    List<FrameDTO> frames = new ArrayList<>();
-	    int index = 0;
-	    for (; index < records.length - 1; index++) {
+		String[] records = input.split(EMPTY);
+		List<FrameDTO> frames = new ArrayList<>();
+		int index = 0;
+		for (; index < records.length - 1; index++) {
+			if (frames.size() == 10) {
+				break;
+			}
+			frames.add(buildFrame(records, index));
+			if (!isStrike(records[index])) {
+				index++;
+			}
+		}
+		if (hasBonus(index, records.length)) {
+			frames.add(createBonusFrame(records, index));
+		}
+		return frames;
+	}
 
 	private FrameDTO createBonusFrame(String[] records, int index) {
+		String firstRecord = records[index++];
+		String secondRecord = EMPTY;
+		if (records.length > index) {
+			secondRecord = records[index];
+		}
+		FrameDTO frame = new FrameDTO(firstRecord, secondRecord);
+		frame.setBonus(true);
+		return frame;
 	}
 
 	private FrameDTO buildFrame(String[] records, int index) {
-		frame.setUpComingRecords(records[index + 1] + records[index + 2]);
-		if (isStrike(records[index])) {
-			return createFrame(records[index], EMPTY, false);
-			frame = createFrame(records[index], EMPTY, false);
+		FrameDTO frame = new FrameDTO();
+		frame.setFirst(records[index]);
+		frame.setBonus(false);
+		if (!isStrike(records[index])) {
+			frame.setSecond(records[index + 1]);
 		} else {
-			frame = createFrame(records[index], records[index + 1], false);
-		}
-		return createFrame(records[index], records[index + 1], false);
-		if (frame.isStrike()) {
 			frame.setUpComingRecords(records[index + 1] + records[index + 2]);
 		}
 		if (frame.isSpare()) {
-			frame.setUpComingRecords(records[index + 1]);
 			frame.setUpComingRecords(records[index + 2]);
 		}
 		return frame;
@@ -42,6 +56,10 @@ class FramesBuilder {
 
 	private boolean isStrike(String record) {
 		return STRIKE_SIGNAL.equals(record);
+	}
+
+	private boolean hasBonus(int index, int length) {
+		return length > index;
 	}
 
 }

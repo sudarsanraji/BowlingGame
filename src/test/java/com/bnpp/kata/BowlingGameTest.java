@@ -17,32 +17,37 @@ public class BowlingGameTest {
 
 	@Test
 	public void noSpareAndNoStrike() throws Exception {
-		BowlingGame bowlingGame = new BowlingGame();
-
-		int score = bowlingGame.calculateScore("12345123451234512345");
+		int score = bowlingGame.getScore("");
 
 		assertThat(score, is(0));
 	}
 
 	@Test
 	public void oneSpareInFirstFrame() throws Exception {
-		int score = bowlingGame.calculateScore("5/345123451234512345");
+		int score = bowlingGame.getScore("5/345123451234512345");
 
 		assertThat(score, is(70));
 	}
 
 	@Test
 	public void oneSpareInLastFrame() throws Exception {
-		int score = bowlingGame.calculateScore("1234512345123451235/5");
+		int score = bowlingGame.getScore("1234512345123451235/5");
 
 		assertThat(score, is(66));
 	}
 
 	@Test
 	public void oneStrikeInFirstFrame() throws Exception {
-		int score = bowlingGame.calculateScore("X345123451234512345");
+		int score = bowlingGame.getScore("X345123451234512345");
 
 		assertThat(score, is(74));
+	}
+
+	@Test
+	public void oneStrikeInLastFrame() throws Exception {
+		int score = bowlingGame.getScore("123451234512345123X53");
+
+		assertThat(score, is(69));
 	}
 
 	@Test
@@ -64,6 +69,13 @@ public class BowlingGameTest {
 		int score = bowlingGame.getScore("9-9-9-9-9-9-9-9-9-9-");
 
 		assertThat(score, is(90));
+	}
+
+	@Test
+	public void compoundedCase() throws Exception {
+		int score = bowlingGame.getScore("125-3/XX12345123XXX");
+
+		assertThat(score, is(113));
 	}
 
 }
