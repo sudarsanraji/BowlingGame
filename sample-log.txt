@@ -1,0 +1,62 @@
+2025-05-04 02:00:00.001 WARN:   [DefaultQuartzScheduler_Worker-7] com.caweco.esra.microstream.backup.StorageBackupJob.execute() ### StorageBackupJob: backup.
+
+2025-05-04 02:00:00.001 INFO:   [DefaultQuartzScheduler_Worker-7] com.caweco.esra.microstream.backup.BackupHelper.backup() Backup to folder /gp3/backup/esra/incremental/backup_2025-05-04_0200
+
+2025-05-04 02:00:00.002 ERROR:  [MicroStream-StorageChannel-0] one.microstream.storage.types.StorageChannelTask$Abstract.addProblem() Error occurred in storage channel#0: one.microstream.storage.exceptions.StorageException
+
+        at one.microstream.storage.types.StorageFile$Abstract.copyTo(StorageFile.java:284)
+
+        at one.microstream.storage.types.StorageFileManager$Default.lambda$exportData$2(StorageFileManager.java:1297)
+
+        at one.microstream.afs.types.AFS.executeWriting(AFS.java:248)
+
+        at one.microstream.afs.types.AFS.executeWriting(AFS.java:235)
+
+        at one.microstream.storage.types.StorageFileManager$Default.exportData(StorageFileManager.java:1296)
+
+        at one.microstream.storage.types.StorageChannel$Default.exportData(StorageChannel.java:621)
+
+        at one.microstream.storage.types.StorageRequestTaskExportChannels$Default.internalProcessBy(StorageRequestTaskExportChannels.java:63)
+
+        at one.microstream.storage.types.StorageRequestTaskExportChannels$Default.internalProcessBy(StorageRequestTaskExportChannels.java:26)
+
+        at one.microstream.storage.types.StorageChannelTask$Abstract.processBy(StorageChannelTask.java:252)
+
+        at one.microstream.storage.types.StorageChannel$Default.work(StorageChannel.java:409)
+
+        at one.microstream.storage.types.StorageChannel$Default.run(StorageChannel.java:492)
+
+        at java.base/java.lang.Thread.run(Thread.java:840)
+
+    Caused by: one.microstream.exceptions.ArrayCapacityException: Java technical array capacity limit of max signed 32 bit integer value exceeded: 2194524250
+
+        at one.microstream.X.checkArrayRange(X.java:154)
+
+        at one.microstream.memory.XMemory.allocateDirectNative(XMemory.java:1086)
+
+        at one.microstream.afs.types.AIoHandler$Abstract.copyGeneric(AIoHandler.java:301)
+
+        at one.microstream.afs.types.AIoHandler$Abstract.copyFrom(AIoHandler.java:937)
+
+        at one.microstream.afs.types.AWritableFile.copyFrom(AWritableFile.java:75)
+
+        at one.microstream.storage.types.StorageFile$Abstract.copyTo(StorageFile.java:280)
+ 
+ 
+ 2025-05-04 02:00:00.002 ERROR:  [DefaultQuartzScheduler_Worker-7] org.quartz.core.JobRunShell.run() Job BackupSchedulerJobGroup.BackupSchedulerJob threw an unhandled Exception: : one.microstream.storage.exceptions.StorageException: Problem in channel #0
+        at one.microstream.storage.types.StorageChannelTask$Abstract.checkForProblems(StorageChannelTask.java:114)
+        at one.microstream.storage.types.StorageChannelTask$Abstract.waitOnCompletion(StorageChannelTask.java:176)
+        at one.microstream.storage.types.StorageRequestAcceptor$Default.waitOnTask(StorageRequestAcceptor.java:162)
+        at one.microstream.storage.types.StorageRequestAcceptor$Default.exportChannels(StorageRequestAcceptor.java:246)
+        at one.microstream.storage.types.StorageConnection$Default.exportChannels(StorageConnection.java:586)
+        at one.microstream.storage.types.StorageConnection.exportChannels(StorageConnection.java:287)
+        at one.microstream.storage.types.StorageConnection$Default.issueFullBackup(StorageConnection.java:563)
+        at one.microstream.storage.embedded.types.EmbeddedStorageManager$Default.issueFullBackup(EmbeddedStorageManager.java:524)
+        at one.microstream.storage.types.StorageConnection.issueFullBackup(StorageConnection.java:219)
+        at com.caweco.esra.microstream.backup.BackupHelper.createBackup(BackupHelper.java:147)
+        at com.caweco.esra.microstream.backup.BackupHelper.backup(BackupHelper.java:114)
+        at com.caweco.esra.microstream.backup.BackupHelper.backupImmediately(BackupHelper.java:67)
+        at com.caweco.esra.microstream.backup.StorageBackupJob.execute(StorageBackupJob.java:56)
+        at org.quartz.core.JobRunShell.run(JobRunShell.java:202)
+        at org.quartz.simpl.SimpleThreadPool$WorkerThread.run(SimpleThreadPool.java:573)
+    Caused by: one.microstream.storage.exceptions.StorageException
