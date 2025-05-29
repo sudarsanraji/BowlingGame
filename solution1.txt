@@ -1,0 +1,250 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+Final Implementation for DB.java
+java
+public static void startDB() {
+    // Set base directory
+    DB.baseDir = Paths.get(ApplicationPropertyProvider.getStorageDirectory());
+    
+    // Handle storage cleanup if requested (development only)
+    if (ApplicationPropertyProvider.isCleanStorageOnStartup()) {
+        cleanStorageDirectory();
+    }
+    
+    final NioFileSystem fileSystem = NioFileSystem.New();
+    final StorageLiveFileProvider storageFileProvider = Storage.FileProviderBuilder(fileSystem)
+        .setDirectory(fileSystem.ensureDirectory(DB.baseDir))
+        .createFileProvider();
+    
+    // Create configuration builder
+    Builder<?> configBuilder = Storage.ConfigurationBuilder()
+        .setStorageFileProvider(storageFileProvider);
+    
+    // Only configure multiple channels if:
+    // 1. We're forcing reconfiguration, OR
+    // 2. It's a new database (empty directory)
+    if (shouldConfigureMultipleChannels()) {
+        configBuilder.setChannelCountProvider(StorageChannelCountProvider.New(4))
+                   .setEntityCacheThreshold(1_000_000);
+        DB.LOG.info("Configuring storage with 4 channels");
+    }
+    
+    // Backup configuration
+    if (ApplicationPropertyProvider.isBackupSuspended()) {
+        DB.LOG.warn("WARN: DEV mode, no rolling backup!");
+    } else {
+        DB.rollingBackupDirectory = Paths.get(DB.rollingBackupDirectory.toString());
+        final StorageBackupSetup storageBackupSetup = Storage.BackupSetup(DB.rollingBackupDirectory);
+        configBuilder.setBackupSetup(storageBackupSetup);
+    }
+    
+    // Create storage configuration
+    final StorageConfiguration storageConfiguration = configBuilder.createConfiguration();
+    
+    // Exception handler
+    final StorageExceptionHandler storageExceptionHandler = (t, c) -> {
+        DB.LOG.error("Storage error! (Channel " + c.channelIndex() + ")", t);
+        onStorageFailure(t);
+    };
+    
+    // Disable GC
+    StorageEntityCache.Default.setGarbageCollectionEnabled(false);
+    
+    // Foundation and storage manager
+    foundation = EmbeddedStorage.Foundation(storageConfiguration)
+                .setExceptionHandler(storageExceptionHandler);
+    storageManager = foundation.createEmbeddedStorageManager(DB.root);
+    
+    // Type mapping provider
+    DB.getRefactoringProvider().ifPresent(provider -> 
+        DB.foundation.setRefactoringMappingProvider(provider));
+    
+    // Start storage
+    storageManager.start();
+}
+
+// Helper methods
+private static boolean shouldConfigureMultipleChannels() {
+    return ApplicationPropertyProvider.isForceChannelReconfiguration() || 
+           isStorageDirectoryEmpty(baseDir);
+}
+
+private static void cleanStorageDirectory() {
+    try {
+        if (Files.exists(baseDir)) {
+            DB.LOG.warn("Cleaning storage directory at: {}", baseDir);
+            Files.walk(baseDir)
+                 .sorted(Comparator.reverseOrder())
+                 .map(Path::toFile)
+                 .forEach(File::delete);
+        }
+    } catch (IOException e) {
+        DB.LOG.error("Failed to clean storage directory", e);
+        throw new RuntimeException("Failed to clean storage directory", e);
+    }
+}
+
+private static boolean isStorageDirectoryEmpty(Path path) {
+    try {
+        if (!Files.exists(path)) {
+            return true;
+        }
+        try (Stream<Path> stream = Files.list(path)) {
+            return !stream.findAny().isPresent();
+        }
+    } catch (IOException e) {
+        DB.LOG.error("Error checking storage directory", e);
+        return true;
+    }
+}
+Required ApplicationPropertyProvider Additions
+java
+public class ApplicationPropertyProvider {
+    // Add these methods
+    public static boolean isCleanStorageOnStartup() {
+        return Boolean.parseBoolean(System.getProperty("microstream.clean.storage.on.startup", "false"));
+    }
+    
+    public static boolean isForceChannelReconfiguration() {
+        return Boolean.parseBoolean(System.getProperty("microstream.force.channel.reconfig", "false"));
+    }
+}
+How to Use This Solution
+For Development/Testing:
+Clean start (wipe all data):
+
+-Dmicrostream.clean.storage.on.startup=true
+Force channel change (keep existing data structure - use with caution):
+
+-Dmicrostream.force.channel.reconfig=true
+For Production:
+Option 1: Keep single channel (remove channel count setting)
+
+Option 2: Migrate data properly:
+
+java
+// 1. Export data from old storage
+Object data = DB.root(); 
+// 2. Clean storage directory
+cleanStorageDirectory();
+// 3. Restart with new channel count
+DB.restartDB();
+// 4. Import data
+DB.store(data);
+Key Improvements:
+Safe Channel Configuration: Only applies new channel count when appropriate
+
+Clear Logging: Documents what configuration is being applied
+
+Safety Checks: Prevents accidental data loss
+
+Flexibility: Can be controlled via system properties
+
+Important Notes:
+Never use -Dmicrostream.force.channel.reconfig=true in production
+
+The clean storage option should only be used in development/testing
+
+
+
+
+
+
+
+
+
+===========================================================================================================
+
+Create a new class MicroStreamMigrationUtil.java:
+
+java
+package com.caweco.esra.microstream;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.stream.Stream;
+
+public class MicroStreamMigrationUtil {
+    private static final Logger LOG = LoggerFactory.getLogger(MicroStreamMigrationUtil.class);
+
+    public static void migrateToMultiChannel() {
+        try {
+            // 1. Export data
+            LOG.info("Starting migration to multi-channel configuration");
+            Object data = DB.root();
+            LOG.info("Data exported from current storage");
+            
+            // 2. Clean storage directory
+            cleanStorageDirectory();
+            
+            // 3. Restart with new channel count
+            DB.restartDB();
+            LOG.info("Storage restarted with new channel configuration");
+            
+            // 4. Import data
+            DB.store(data);
+            LOG.info("Data imported into new storage structure");
+            
+            LOG.info("Migration completed successfully");
+        } catch (Exception e) {
+            LOG.error("Migration failed", e);
+            throw new RuntimeException("Migration failed", e);
+        }
+    }
+
+    private static void cleanStorageDirectory() throws IOException {
+        Path baseDir = Paths.get(ApplicationPropertyProvider.getStorageDirectory());
+        if (Files.exists(baseDir)) {
+            LOG.warn("Cleaning storage directory at: {}", baseDir);
+            try (Stream<Path> walk = Files.walk(baseDir)) {
+                walk.sorted(Comparator.reverseOrder())
+                   .map(Path::toFile)
+                   .forEach(File::delete);
+            }
+        }
+    }
+}
+
+
+Add this method to your DB.java:
+
+java
+public static void migrateToMultiChannelConfiguration() {
+    if (!isRunning()) {
+        throw new IllegalStateException("Database must be running to perform migration");
+    }
+    
+    try {
+        // 1. Export data
+        LOG.info("Starting migration to multi-channel configuration");
+        Object data = root().deepCopy(); // Implement deepCopy() in your DataRoot class
+        
+        // 2. Shutdown and clean
+        close();
+        cleanStorageDirectory();
+        
+        // 3. Restart with new config
+        System.setProperty("microstream.force.channel.reconfig", "true");
+        startDB();
+        
+        // 4. Import data
+        store(data);
+        LOG.info("Migration completed successfully");
+    } catch (Exception e) {
+        LOG.error("Migration failed", e);
+        throw new RuntimeException("Database migration failed", e);
+    }
+}
